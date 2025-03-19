@@ -1,0 +1,32 @@
+summary(iris[,1:4])
+lapply(iris[,1:4],sum)
+sapply(iris[,1:4], min)
+sapply(iris[,1:4], mean)
+
+## scv
+inf <- read.csv("C:/202325014 이지원/infant.csv")
+inf
+view(inf)
+str(inf)
+plot(inf$age, inf$weight)
+## 6 lines show
+head(inf)
+
+## linear regresssion
+lm(inf$age~inf$weight, data = inf)
+fit <- lm(inf$age~inf$weight, data = inf)
+summary(fit)
+abline(fit)
+
+library(vcd)
+help(package = "vcd")
+data(Arthritis)
+## 6 lines show
+head(Arthritis)
+str(Arthritis)
+names(Arthritis)
+dim(Arthritis)
+length(Arthritis)
+clonames(Arthritis)
+hist(inf$age)
+hist(inf$weight)
