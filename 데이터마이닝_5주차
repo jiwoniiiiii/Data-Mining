@@ -18,4 +18,21 @@ geom_line (aes (y - y_norm3, color = "N(-1, 1)"), size = 1) +
 labs(title = 정규분포 곡선",x="x,y = "확률밀도•
 color = "분포")
 
-#상관관계분석
+pairs(trees)
+##상관관계 분석
+cor(trees)
+
+# 상관관계 행렬 계산
+> cor_matrix <- cor(mtcars)
+> cors_with_target ‹- cor_matrix[target_var, J
+> # 내림차순 정렬
+> sorted_cors_with_target <- sort(cors_with_target, decreasi
+ng = TRUE)
+> print(sorted_cors_with_target)
+##다중회귀분석실시
+> fit<-1m(mpg~drat+ vs+am+gear+qsec+carb+hp+disp+cyl+wt, data = mtcars)
+> summary (fit)
+>## 상관관계가 높은 변수 3개만으로 회귀분석 실시
+> a_fit<-1m(mpg~hp+disp+cyl+wt, data = mtcars)
+> summarya_fit)
+
