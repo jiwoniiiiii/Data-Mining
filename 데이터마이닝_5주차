@@ -1,0 +1,21 @@
+#정규분포 그려보기
+x <- seq(-3, 3, 0, 01)
+plot(x, dnorm(x), type ='1'
+
+# gpplot2 퍼키지 설치 및 로드
+install.packages ("ggplot2")
+library(ggplot2)
+# 데이터 생성
+df ‹- data. frame(x = seq(-4, 4, length. out = 1000))
+dfSy_norml <- dnorm(df$x, mean - 0, sd = 1)
+dfSy_norm2 <- dnorm(df$x, mean = 0, sd = 0.5)
+dfSy_norm3 <- dnorm(df$x, mean = -1, sd = 1)
+# ggplot으로 그리기
+ggplot(df, aes (x = x)) +
+geom_line(aes(y = y_norml, color = "N(O, 1)"), size = 1) +
+geom_11ne (aes (y = y_norm2, color = "N(O, 0.5)"), size = 1) +
+geom_line (aes (y - y_norm3, color = "N(-1, 1)"), size = 1) +
+labs(title = 정규분포 곡선",x="x,y = "확률밀도•
+color = "분포")
+
+#상관관계분석
