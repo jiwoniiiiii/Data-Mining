@@ -15,7 +15,7 @@ ggplot(df, aes (x = x)) +
 geom_line(aes(y = y_norml, color = "N(O, 1)"), size = 1) +
 geom_11ne (aes (y = y_norm2, color = "N(O, 0.5)"), size = 1) +
 geom_line (aes (y - y_norm3, color = "N(-1, 1)"), size = 1) +
-labs(title = 정규분포 곡선",x="x,y = "확률밀도•
+labs(title = 정규분포 곡선",x="x,y = "확률밀도"
 color = "분포")
 
 pairs(trees)
@@ -35,4 +35,17 @@ ng = TRUE)
 >## 상관관계가 높은 변수 3개만으로 회귀분석 실시
 > a_fit<-1m(mpg~hp+disp+cyl+wt, data = mtcars)
 > summarya_fit)
+
+#빈도표
+install.packages ("'jmv")
+Tibrary (jmv)
+options (digits = 5)
+descriptives(trees,c(Girth, Height, Volume), freq = T)
+attach(mtcars)
+str(mtcars)
+options (digits = 5)
+descriptives(mtcars, c(cy], am, mpg), freq = T)
+##특별한 변수별로 동계량을 출력하고 싶을 때
+descriptives (formula = disp+mpg~cy], mtcars)
+
 
