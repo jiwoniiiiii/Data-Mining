@@ -5,10 +5,14 @@ data("iris")   # 내장 데이터 불러오기
 str(iris)      # 데이터 구조 확인
 
 #데이터 분할 (7:3)
-set.seed(42)
-idx <- createDataPartition(iris$Species, p = 0.7, list = FALSE)
-train <- iris[idx, ]
-test  <- iris[-idx, ]
+idx <- sample(1:nrow(iris), as.integer(0.7 * nrow(iris)))
+trainIris <- iris[idx, ]
+dim(trainIris)
+testIris <- iris[-idx, ]
+dim(testIris)
+iris_model <- knn(trainIris[-5], testIris[-5], trainIris$Species, k = 3)
+table(iris_model)
+table(testIris$Species, iris_model, dnn = c("Actual", "Predicted"))
 -
 #나이브 베이즈 분류
 nb <- naiveBayes(Species ~ ., data = train)
