@@ -1,0 +1,109 @@
+01.
+
+#데이터 불러오기
+data("iris")   # 내장 데이터 불러오기
+str(iris)      # 데이터 구조 확인
+
+#데이터 분할 (7:3)
+set.seed(42)
+idx <- createDataPartition(iris$Species, p = 0.7, list = FALSE)
+train <- iris[idx, ]
+test  <- iris[-idx, ]
+-
+#나이브 베이즈 분류
+nb <- naiveBayes(Species ~ ., data = train)
+
+# 5. 예측 및 정오분류표
+pred <- predict(nb, test, type = "class")
+cm <- confusionMatrix(pred, test$Species)
+
+print("[정오분류표]")
+cm$table
+
+print("📈 [정확도(Accuracy)]")
+cm$overall["Accuracy"]
+-
+#변수 중요도 (정보이득)
+ig <- information_gain(Species ~ ., data = train)
+print("[영향력 높은 변수 순서]")
+ig[order(-ig$importance), ]
+
+#(다중분류 macro 기준)
+proba <- predict(nb, test, type = "raw")
+roc_multi <- multiclass.roc(response = test$Species,
+                            predictor = as.numeric(predict(nb, test)))
+auc_macro <- auc(roc_multi)
+print(paste("AUC:", round(auc_macro, 4)))
+
+02.
+packages <- c("kernlab","e1071","caret","pROC")
+new <- packages[!(packages %in% installed.packages()[,"Package"])]
+if(length(new)) install.packages(new)
+lapply(packages, library, character.only=TRUE)
+
+set.seed(42)
+data(spam)                  # kernlab::spam (타깃: type, "spam"/"nonspam")
+spam$type <- factor(spam$type)
+
+# 1) 데이터 정보 요약 & 결측치 확인
+str(spam)
+summary(spam)
+colSums(is.na(spam))
+
+# 2) 6:4 분할
+idx <- createDataPartition(spam$type, p=0.6, list=FALSE)
+train <- spam[idx, ]
+test  <- spam[-idx, ]
+
+# 3) 나이브 베이즈 학습/예측
+nb <- naiveBayes(type ~ ., data=train)
+pred <- predict(nb, test, type="class")
+cm <- confusionMatrix(pred, test$type)
+cm$table
+acc <- cm$overall["Accuracy"]; acc
+
+# 4) 정보요약과 결측치는 위 summary/NA 합계에서 확인
+
+# 5) 정분류율(=정확도) 출력
+accuracy <- as.numeric(acc); accuracy
+
+# 6) AUC (이진분류)
+proba <- predict(nb, test, type="raw")[, "spam"]
+auc_val <- roc(response=test$type, predictor=proba, levels=c("nonspam","spam"), direction="<")
+auc(auc_val)
+
+03.
+packages <- c("mlbench","e1071","caret","pROC")
+new <- packages[!(packages %in% installed.packages()[,"Package"])]
+if(length(new)) install.packages(new)
+lapply(packages, library, character.only=TRUE)
+
+set.seed(42)
+data(HouseVotes84)  # 타깃: Class (republican/democrat)
+
+df <- HouseVotes84
+
+# 1) 데이터 정보 요약
+str(df)
+summary(df)
+colSums(is.na(df))  # 결측 많음(?, NA) → e1071 NB는 factor 결측 자동 처리 X
+
+# 단순 처리: 결측을 "unknown" 범주로 치환
+for (j in names(df)[-1]) {
+  df[[j]] <- addNA(df[[j]])
+}
+
+# 2) 7:3 또는 과제 요구 비율대로 분할 (문항엔 비율 명시 X → 7:3 예시)
+idx <- createDataPartition(df$Class, p=0.7, list=FALSE)
+train <- df[idx, ]
+test  <- df[-idx, ]
+
+# 3) NB 학습/예측
+nb <- naiveBayes(Class ~ ., data=train, laplace=1)  # 라플라스 스무딩 권장
+pred <- predict(nb, test, type="class")
+cm <- confusionMatrix(pred, test$Class)
+cm$table
+acc <- cm$overall["Accuracy"]; acc  # 결측 처리 방식에 따라 수치는 변동
+
+# 4) 정분류율(=정확도)
+accuracy <- as.numeric(acc); accuracy
