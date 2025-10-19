@@ -1,0 +1,42 @@
+04.
+data("iris")
+
+# 2) 6:4 분할
+set.seed(42)
+idx <- createDataPartition(iris$Species, p = 0.6, list = FALSE)
+train <- iris[idx, ]
+test <- iris[-idx, ]
+
+# 3) 의사결정나무 모델 생성
+tree <- rpart(Species ~ ., data = train, method = "class")
+
+# 4) 시각화
+rpart.plot(tree, main = "Decision Tree for Iris")
+
+# 5) 정보이득(변수 중요도)
+print("변수 중요도")
+tree$variable.importance
+
+# 6) cp 값(Complexity Parameter)
+print("cp 값 테이블")
+printcp(tree)
+
+05. 
+# 1) 데이터 불러오기
+data("airquality")
+
+# 2) 결측값 제거
+air <- na.omit(airquality)
+
+# 3) 모델 생성 (Ozone 예측)
+tree_air <- rpart(Ozone ~ ., data = air, method = "anova")
+
+# 4) 시각화
+rpart.plot(tree_air, main = "Decision Tree for Airquality")
+
+# 5) 변수 중요도 & cp값
+print("변수 중요도")
+tree_air$variable.importance
+
+print("cp 값 테이블")
+printcp(tree_air)
