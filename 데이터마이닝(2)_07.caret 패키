@@ -1,0 +1,57 @@
+# 1) 데이터 로드 & 목표/설명변수 설정
+data("Smarket")                 # 변수: Year, Lag1~Lag5, Volume, Today, Direction
+df <- Smarket
+df$Direction <- factor(df$Direction, levels = c("Down","Up"))  # 양/음성 순서 명시(ROC 편의)
+
+# (선택) 정보 누수 방지: Today는 제외하고 Lag1~Lag5, Volume만 사용
+df <- subset(df, select = c(Lag1, Lag2, Lag3, Lag4, Lag5, Volume, Direction))
+
+# 2) 데이터 분할 (층화 7:3)
+set.seed(42)
+idx <- caret::createDataPartition(df$Direction, p = 0.7, list = FALSE)
+tr  <- df[idx, ]
+te  <- df[-idx, ]
+
+# 3) 학습 설정: ROC를 기준으로 최적 k 찾기 (repeated CV)
+ctrl <- trainControl(
+  method = "repeatedcv", number = 5, repeats = 5,
+  classProbs = TRUE, summaryFunction = twoClassSummary,
+  savePredictions = "final"
+)
+
+# 4) KNN 학습 (전처리: 스케일링, 탐색: k=1..31)
+set.seed(42)
+fit_knn <- train(
+  Direction ~ ., data = tr,
+  method = "knn",
+  preProcess = c("center", "scale"),
+  tuneLength = 15,                 # 자동으로 여러 k를 탐색 (보통 홀수 k)
+  metric = "ROC", trControl = ctrl
+)
+
+fit_knn
+plot(fit_knn)                      # k별 성능 시각화
+
+# 5) 테스트 예측 & 정오분류표
+pred_cls  <- predict(fit_knn, newdata = te)
+pred_prob <- predict(fit_knn, newdata = te, type = "prob")[, "Up"]
+
+cm <- caret::confusionMatrix(pred_cls, te$Direction, positive = "Up")
+cm$table                           # 정오분류표
+cm$overall["Accuracy"]             # 정확도
+cm$byClass[c("Sensitivity","Specificity")]  # 민감도/특이도
+
+# 6) ROC/AUC
+roc_obj <- pROC::roc(response = te$Direction, predictor = pred_prob,
+                     levels = c("Down","Up"), direction = "<")
+pROC::auc(roc_obj)
+
+# ROC 그리기
+autoplot <- ggplot(data.frame(
+  tpr = roc_obj$sensitivities,
+  fpr = 1 - roc_obj$specificities
+), aes(x = fpr, y = tpr)) +
+  geom_line() + geom_abline(linetype = 2) +
+  labs(title = sprintf("KNN ROC (AUC = %.3f)", pROC::auc(roc_obj)),
+       x = "1 - Specificity (FPR)", y = "Sensitivity (TPR)")
+print(autoplot)
