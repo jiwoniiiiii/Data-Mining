@@ -1,0 +1,20 @@
+01.
+# KNN 회귀 예시
+library(FNN)
+
+# 데이터 입력
+df <- data.frame(
+  name = c("McGwire","Bonds","Helton","Walker","Pujols","Pedroia"),
+  lag1 = c(100,90,75,80,95,70),
+  lag2 = c(120,80,95,100,92,90),
+  Runs = c(65,120,70,99,65,80)
+)
+
+# train/test 분리
+train <- df[df$name != "Bonds", c("lag1","lag2")]
+test  <- df[df$name == "Bonds", c("lag1","lag2")]
+y_train <- df[df$name != "Bonds", "Runs"]
+
+# k=2로 예측
+model <- knn.reg(train = train, test = test, y = y_train, k = 2)
+model$pred
