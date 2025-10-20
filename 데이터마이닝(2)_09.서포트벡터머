@@ -1,0 +1,30 @@
+1)
+data("iris")
+
+# 2. 파라미터 탐색 (교차검증)
+set.seed(42)
+tune.out <- tune.svm(Species ~ ., data = iris,
+                     gamma = 10^(-3:1),
+                     cost = 10^(-2:2))
+
+# 결과 출력
+summary(tune.out)
+best <- tune.out$best.parameters
+best
+
+2)
+# 최적 파라미터로 모델 생성
+svm.model <- svm(Species ~ ., data = iris,
+                 kernel = "radial",
+                 cost = best$cost,
+                 gamma = best$gamma)
+
+# 예측
+pred <- predict(svm.model, iris)
+
+3)
+# 정분류표
+table(Actual = iris$Species, Predicted = pred)
+
+# 정확도 계산
+mean(pred == iris$Species)
