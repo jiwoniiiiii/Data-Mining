@@ -1,0 +1,117 @@
+# ============================================================
+# 데이터마이닝(2) 5-4 자연어처리(NLP)
+# 벡터화 + 유사도 계산 실습
+# ============================================================
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import CountVectorizer
+
+# ============================================================
+# [1번 문제] K-POP 그룹 벡터화 및 유사도 분석
+# ============================================================
+
+print("="*60)
+print("1번 문제: K-POP 그룹 벡터화 및 유사도 분석")
+print("="*60)
+
+# 1️⃣ K-POP 그룹 [노래, 춤] 점수 벡터
+kpop_groups = {
+    "NewJeans": [9, 8],
+    "IVE": [8, 7],
+    "LE_SSERAFIM": [7, 9],
+    "SEVENTEEN": [8, 9],
+    "NCT": [7, 8]
+}
+
+print("\nK-POP 그룹 벡터:")
+for group, vector in kpop_groups.items():
+    print(f"{group}: {vector}")
+
+# 2️⃣ 코사인 유사도 계산
+group_names = list(kpop_groups.keys())
+group_vectors = np.array(list(kpop_groups.values()))
+
+similarity_matrix = cosine_similarity(group_vectors)
+
+max_sim = -1
+best_pair = None
+
+print("\n그룹 간 코사인 유사도:")
+for i in range(len(group_names)):
+    for j in range(i + 1, len(group_names)):
+        sim = similarity_matrix[i][j]
+        print(f"{group_names[i]} ↔ {group_names[j]} : {sim:.3f}")
+        if sim > max_sim:
+            max_sim = sim
+            best_pair = (group_names[i], group_names[j])
+
+print("\n가장 비슷한 두 그룹:")
+print(best_pair, "유사도:", round(max_sim, 3))
+
+# 3️⃣ 시각화
+plt.figure(figsize=(6, 6))
+for name, vec in kpop_groups.items():
+    x, y = vec
+    plt.scatter(x, y, s=150)
+    plt.text(x + 0.05, y + 0.05, name)
+
+plt.xlabel("노래 점수")
+plt.ylabel("춤 점수")
+plt.title("K-POP 그룹 벡터 시각화")
+plt.grid(True)
+plt.xlim(0, 10)
+plt.ylim(0, 10)
+plt.show()
+
+
+# ============================================================
+# [2번 문제] 학생 리뷰 벡터화 및 성향 유사도 분석
+# ============================================================
+
+print("\n" + "="*60)
+print("2번 문제: 학생 리뷰 벡터화 및 성향 분석")
+print("="*60)
+
+# 1️⃣ 학생 리뷰 데이터
+reviews = {
+    "Student1": "가격이 싸고 양이 많다",
+    "Student2": "가성비가 좋고 저렴하다",
+    "Student3": "음식이 맛있고 신선하다",
+    "Student4": "영화가 재미있고 감동적이다",
+    "Student5": "영화가 지루하고 길다"
+}
+
+print("\n학생 리뷰:")
+for name, review in reviews.items():
+    print(f"{name}: {review}")
+
+# 2️⃣ Bag of Words 벡터화
+vectorizer = CountVectorizer()
+X = vectorizer.fit_transform(reviews.values())
+
+print("\n단어 사전:")
+print(vectorizer.get_feature_names_out())
+
+print("\n문장 벡터:")
+print(X.toarray())
+
+# 3️⃣ 코사인 유사도 계산
+similarity = cosine_similarity(X)
+students = list(reviews.keys())
+
+print("\n학생 간 코사인 유사도:")
+max_sim = -1
+best_pair = None
+
+for i in range(len(students)):
+    for j in range(i + 1, len(students)):
+        sim = similarity[i][j]
+        print(f"{students[i]} ↔ {students[j]} : {sim:.3f}")
+        if sim > max_sim:
+            max_sim = sim
+            best_pair = (students[i], students[j])
+
+print("\n가장 성향이 비슷한 학생:")
+print(best_pair, "유사도:", round(max_sim, 3))
