@@ -1,6 +1,5 @@
 # ============================================================
 # 데이터마이닝(2) 5-4 자연어처리(NLP)
-# 벡터화 + 유사도 계산 실습
 # ============================================================
 
 import numpy as np
@@ -70,48 +69,111 @@ plt.show()
 # [2번 문제] 학생 리뷰 벡터화 및 성향 유사도 분석
 # ============================================================
 
-print("\n" + "="*60)
-print("2번 문제: 학생 리뷰 벡터화 및 성향 분석")
-print("="*60)
+import numpy as np
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.cluster import KMeans
 
-# 1️⃣ 학생 리뷰 데이터
-reviews = {
-    "Student1": "가격이 싸고 양이 많다",
-    "Student2": "가성비가 좋고 저렴하다",
-    "Student3": "음식이 맛있고 신선하다",
-    "Student4": "영화가 재미있고 감동적이다",
-    "Student5": "영화가 지루하고 길다"
+# -----------------------------
+# ✅ 주제별 리뷰 데이터
+# -----------------------------
+topic_reviews = {
+    "한라대학교_학생식당": {
+        "Student1": "가격이 싸고 양이 많아서 만족한다",
+        "Student2": "가성비가 좋고 메뉴가 다양하다",
+        "Student3": "위생이 아쉽고 줄이 길다",
+        "Student4": "맛있지만 대기시간이 길다",
+        "Student5": "반찬이 깔끔하고 맛이 좋다"
+    },
+    "24시_편의점": {
+        "Student1": "야간에도 편리하고 접근성이 좋다",
+        "Student2": "신상품이 많고 행사도 많다",
+        "Student3": "가격이 비싸고 물건이 자주 품절된다",
+        "Student4": "도시락이 맛있고 할인행사가 좋다",
+        "Student5": "직원이 친절하고 계산이 빠르다"
+    },
+    "영화리뷰": {
+        "Student1": "스토리가 감동적이고 재미있다",
+        "Student2": "전개가 느리고 지루했다",
+        "Student3": "액션이 많고 긴장감이 좋았다",
+        "Student4": "연기가 훌륭하고 몰입감이 있었다",
+        "Student5": "내용이 복잡하고 이해하기 어려웠다"
+    }
 }
 
-print("\n학생 리뷰:")
-for name, review in reviews.items():
-    print(f"{name}: {review}")
+# -----------------------------
+# 유틸 함수들
+# -----------------------------
+def print_similarity_table(names, sim_matrix, title):
+    print(f"\n[유사도 행렬] {title}")
+    header = " " * 10 + " ".join([f"{n:>10}" for n in names])
+    print(header)
+    for i, n in enumerate(names):
+        row = f"{n:>10} " + " ".join([f"{sim_matrix[i][j]:10.3f}" for j in range(len(names))])
+        print(row)
 
-# 2️⃣ Bag of Words 벡터화
-vectorizer = CountVectorizer()
-X = vectorizer.fit_transform(reviews.values())
+def most_similar_pair(names, sim_matrix):
+    max_sim = -1
+    best_pair = None
+    for i in range(len(names)):
+        for j in range(i+1, len(names)):
+            if sim_matrix[i][j] > max_sim:
+                max_sim = sim_matrix[i][j]
+                best_pair = (names[i], names[j])
+    return best_pair, max_sim
 
-print("\n단어 사전:")
-print(vectorizer.get_feature_names_out())
+def kmeans_cluster_labels(X, names, k=2):
+    # 표본이 너무 적으면 k를 자동으로 줄임
+    k = max(2, min(k, len(names)))
+    model = KMeans(n_clusters=k, random_state=0, n_init=10)
+    labels = model.fit_predict(X)
+    return labels, k
 
-print("\n문장 벡터:")
-print(X.toarray())
+# -----------------------------
+# ✅ 주제별로 따로 분석
+# -----------------------------
+for topic, reviews in topic_reviews.items():
+    print("\n" + "="*70)
+    print(f"주제: {topic}")
+    print("="*70)
 
-# 3️⃣ 코사인 유사도 계산
-similarity = cosine_similarity(X)
-students = list(reviews.keys())
+    # 1) 리뷰 출력
+    print("\n리뷰 목록:")
+    for student, text in reviews.items():
+        print(f"- {student}: {text}")
 
-print("\n학생 간 코사인 유사도:")
-max_sim = -1
-best_pair = None
+    # 2) Bag of Words 벡터화
+    vectorizer = CountVectorizer()
+    X = vectorizer.fit_transform(reviews.values())
+    vocab = vectorizer.get_feature_names_out()
 
-for i in range(len(students)):
-    for j in range(i + 1, len(students)):
-        sim = similarity[i][j]
-        print(f"{students[i]} ↔ {students[j]} : {sim:.3f}")
-        if sim > max_sim:
-            max_sim = sim
-            best_pair = (students[i], students[j])
+    print("\n단어 사전(vocabulary) 크기:", len(vocab))
+    print("단어 사전 일부:", list(vocab)[:15], "..." if len(vocab) > 15 else "")
 
-print("\n가장 성향이 비슷한 학생:")
-print(best_pair, "유사도:", round(max_sim, 3))
+    # 3) 코사인 유사도 계산
+    sim = cosine_similarity(X)
+    names = list(reviews.keys())
+
+    # 유사도 행렬 출력
+    print_similarity_table(names, sim, topic)
+
+    # 가장 비슷한 학생 쌍
+    pair, score = most_similar_pair(names, sim)
+    print("\n✅ 가장 성향이 비슷한 학생 쌍:")
+    print(f"  {pair[0]} ↔ {pair[1]}  (코사인 유사도: {score:.3f})")
+
+    # 4) (옵션) KMeans 군집화
+    # 주제마다 학생들을 k개 그룹으로 묶어 "성향이 비슷한 학생끼리 그룹"을 만들기
+    labels, k_used = kmeans_cluster_labels(X, names, k=2)
+
+    print(f"\n📌 KMeans 군집화 결과 (k={k_used}):")
+    clusters = {}
+    for name, label in zip(names, labels):
+        clusters.setdefault(label, []).append(name)
+
+    for label, members in clusters.items():
+        print(f"  - 그룹 {label}: {', '.join(members)}")
+
+print("\n" + "="*70)
+print("✅ 주제별 분석 완료")
+print("="*70)
